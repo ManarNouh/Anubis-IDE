@@ -260,6 +260,7 @@ class UI(QMainWindow):
         filemenu = menu.addMenu('File')
         Port = menu.addMenu('Port')
         Run = menu.addMenu('Run')
+        Wrap = menu.addMenu('Wrap')
 
         # As any PC or laptop have many ports, so I need to list them to the User
         # so I made (Port_Action) to add the Ports got from (serial_ports()) function
@@ -275,8 +276,10 @@ class UI(QMainWindow):
         # adding the menu which I made to the original (Port menu)
         Port.addMenu(Port_Action)
 
-#        Port_Action.triggered.connect(self.Port)
-#        Port.addAction(Port_Action)
+        ExecuteAction = QAction("Execute", self)
+        ExecuteAction.triggered.connect(self.Execute)
+        ExecuteAction.setShortcut("Ctrl+E")
+        Wrap.addAction(ExecuteAction)
 
         # Making and adding Run Actions
         RunAction = QAction("Run", self)
@@ -349,6 +352,36 @@ class UI(QMainWindow):
             with f:
                 data = f.read()
             self.Open_Signal.reading.emit(data)
+            
+     def Execute(self):
+        fn = text.toPlainText()
+        if exec(fn) is None:
+            text2.append("The function is correctly executed.")
+        lines = fn.splitlines()
+        for line in lines:
+            if "def" in line:
+                leftbr = line.find("(") + 1
+                rightbr = line.find(")")
+                newL = line[leftbr:rightbr]
+                newL = newL.replace(" ", "")
+                params = newL.split(",")
+                x = line.find("def") + 4
+                y = line.find("(")
+                output = "Output = " + line[x:y] + "("
+                if params[0] != '':
+                    in_parameters, stop_entering = QInputDialog.getText(self, "Parameters",
+                                                              "Enter parameters in the following format x,y")
+                    if stop_entering and in_parameters != '':
+                        inputs = in_parameters.split(",")
+                    for param in inputs:
+                        output = output + param + ","
+                    output = output[:-1]
+                output = output + ")"
+                exec(output)
+                exec("text2.append('The result is: ')")
+                exec("text2.append(str(Output))")
+        
+
 
 
 #
